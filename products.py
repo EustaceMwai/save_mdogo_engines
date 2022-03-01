@@ -47,7 +47,8 @@ def get_davis_products(connection):
             return True
 
         for category in category_list:
-            products_response = save_to_purchase.get_products_for_db(category['sub_category_id'])
+
+            products_response = save_to_purchase.get_products_for_db(category[2])
 
             if len(products_response):
                 for x in products_response:
@@ -58,6 +59,7 @@ def get_davis_products(connection):
                         product_status = "sold_out"
 
                     # update query
+                    print(x['product_id'])
 
                     sql = """ UPDATE davis_products SET 
                    image = %s,
@@ -75,7 +77,7 @@ def get_davis_products(connection):
                    special_noformat = %s,
                    special_discount = %s,
                    active_status = %s,
-                   product_status = %s,
+                   product_status = %s
                    where product_id = %s"""
 
                     val = (
@@ -87,8 +89,9 @@ def get_davis_products(connection):
                         x['controller']['special_discount'],
                         "active",
                         product_status,
-                        x['product_id'],
+                        x['product_id']
                     )
+                    print("updating products")
 
                     db.update_db(connection, sql, val)
         return True
@@ -118,20 +121,22 @@ def get_davis_products(connection):
 
 if __name__ == "__main__":
     session = None
-    while True:
-        try:
-            if not session:
-                session = create_connection()
-                print("establishing conncetion")
-            deposit_list = fetch_records(session)
-            print("after fetch_records {}".format(len(deposit_list)))
-            # update_sms_records(session)
-            # session.commit()
-            session.close()
-            session = None
-            time.sleep(5)
-        except Exception as err:
-            logger.error('Main error: {}'.format(str(err)))
-            logger.error(err, exc_info=True)
-            # if session:
-            #     session.rollback()
+    # while True:
+    try:
+        if not session:
+            session = create_connection()
+            print("establishing conncetion")
+        deposit_list = fetch_records(session)
+
+        print("after fetch_records {}".format(len(deposit_list)))
+        get_davis_products(session)
+        # update_sms_records(session)
+        # session.commit()
+        session.close()
+        session = None
+        # time.sleep(5)
+    except Exception as err:
+        logger.error('Main error: {}'.format(str(err)))
+        logger.error(err, exc_info=True)
+        # if session:
+        #     session.rollback()
